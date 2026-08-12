@@ -5,6 +5,7 @@ import "./globals.css";
 import { QueryProvider } from "@/components/query-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,8 +37,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           disableTransitionOnChange
         >
           <QueryProvider>
-            {children}
-            <Toaster richColors closeButton position="top-right" />
+            <TooltipProvider delay={200}>
+              {children}
+              <Toaster richColors closeButton position="top-right" />
+            </TooltipProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>
