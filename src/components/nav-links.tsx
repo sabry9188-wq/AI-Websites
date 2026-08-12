@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, LayoutDashboard, Settings, Table2 } from "lucide-react";
+import { FileText, LayoutDashboard, Settings, Table2, Waves } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/register", label: "Net Register", icon: Table2 },
+  { href: "/cages", label: "Cages", icon: Waves },
   { href: "/reports", label: "Reports", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;

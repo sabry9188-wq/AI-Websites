@@ -13,6 +13,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { buildNetColumns } from "@/components/nets/net-columns";
+import type { NetActionType } from "@/components/nets/net-row-actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -50,10 +51,10 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 
 export function NetRegisterTable({
   onAddNet,
-  onEditNet,
+  onAction,
 }: {
   onAddNet: () => void;
-  onEditNet: (net: NetStatusView) => void;
+  onAction: (type: NetActionType, net: NetStatusView) => void;
 }) {
   const { data: nets, isLoading } = useNetStatus();
   const { data: cages } = useCages();
@@ -100,7 +101,7 @@ export function NetRegisterTable({
     dateInTo,
   ]);
 
-  const columns = useMemo(() => buildNetColumns(onEditNet), [onEditNet]);
+  const columns = useMemo(() => buildNetColumns(onAction), [onAction]);
 
   const table = useReactTable({
     data: filtered,

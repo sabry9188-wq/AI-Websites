@@ -2,22 +2,33 @@
 
 import { useState } from "react";
 
+import { ChangeStatusDialog } from "@/components/nets/change-status-dialog";
+import { HoleCountDialog } from "@/components/nets/hole-count-dialog";
+import { InstallNetDialog } from "@/components/nets/install-net-dialog";
 import { NetFormSheet } from "@/components/nets/net-form-sheet";
+import { NetHistorySheet } from "@/components/nets/net-history-sheet";
 import { NetRegisterTable } from "@/components/nets/net-register-table";
+import type { NetActionType } from "@/components/nets/net-row-actions";
+import { RemoveNetDialog } from "@/components/nets/remove-net-dialog";
+import { ScrapNetDialog } from "@/components/nets/scrap-net-dialog";
 import type { NetStatusView } from "@/types/database";
 
 export default function NetRegisterPage() {
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingNet, setEditingNet] = useState<NetStatusView | null>(null);
+  const [activeAction, setActiveAction] = useState<NetActionType | null>(null);
+  const [activeNet, setActiveNet] = useState<NetStatusView | null>(null);
 
-  function handleAddNet() {
-    setEditingNet(null);
-    setFormOpen(true);
+  function handleAction(type: NetActionType, net: NetStatusView) {
+    setActiveNet(net);
+    setActiveAction(type);
   }
 
-  function handleEditNet(net: NetStatusView) {
-    setEditingNet(net);
-    setFormOpen(true);
+  function handleAddNet() {
+    setActiveNet(null);
+    setActiveAction("edit");
+  }
+
+  function closeAction() {
+    setActiveAction(null);
   }
 
   return (
@@ -29,9 +40,43 @@ export default function NetRegisterPage() {
         </p>
       </div>
 
-      <NetRegisterTable onAddNet={handleAddNet} onEditNet={handleEditNet} />
+      <NetRegisterTable onAddNet={handleAddNet} onAction={handleAction} />
 
-      <NetFormSheet open={formOpen} onOpenChange={setFormOpen} net={editingNet} />
+      <NetFormSheet
+        open={activeAction === "edit"}
+        onOpenChange={(open) => !open && closeAction()}
+        net={activeNet}
+      />
+      <InstallNetDialog
+        net={activeNet}
+        open={activeAction === "install"}
+        onOpenChange={(open) => !open && closeAction()}
+      />
+      <RemoveNetDialog
+        net={activeNet}
+        open={activeAction === "remove"}
+        onOpenChange={(open) => !open && closeAction()}
+      />
+      <HoleCountDialog
+        net={activeNet}
+        open={activeAction === "holeCount"}
+        onOpenChange={(open) => !open && closeAction()}
+      />
+      <ChangeStatusDialog
+        net={activeNet}
+        open={activeAction === "changeStatus"}
+        onOpenChange={(open) => !open && closeAction()}
+      />
+      <ScrapNetDialog
+        net={activeNet}
+        open={activeAction === "scrap"}
+        onOpenChange={(open) => !open && closeAction()}
+      />
+      <NetHistorySheet
+        net={activeNet}
+        open={activeAction === "history"}
+        onOpenChange={(open) => !open && closeAction()}
+      />
     </div>
   );
 }

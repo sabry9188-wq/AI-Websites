@@ -1,10 +1,9 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { Pencil } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { ColorDot } from "@/components/nets/color-dot";
+import { NetRowActions, type NetActionType } from "@/components/nets/net-row-actions";
 import { StatusBadge } from "@/components/nets/status-badge";
 import type { NetStatusView } from "@/types/database";
 
@@ -18,7 +17,7 @@ function formatDate(value: string | null) {
 }
 
 export function buildNetColumns(
-  onEdit: (net: NetStatusView) => void
+  onAction: (type: NetActionType, net: NetStatusView) => void
 ): ColumnDef<NetStatusView>[] {
   return [
     {
@@ -107,16 +106,7 @@ export function buildNetColumns(
     {
       id: "actions",
       header: "",
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label={`Edit ${row.original.net_number}`}
-          onClick={() => onEdit(row.original)}
-        >
-          <Pencil className="size-4" />
-        </Button>
-      ),
+      cell: ({ row }) => <NetRowActions net={row.original} onAction={onAction} />,
     },
   ];
 }

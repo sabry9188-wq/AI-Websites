@@ -10,6 +10,11 @@
 -- This script is NOT safe to re-run on a project where it already ran — it
 -- will fail with "already exists" errors. See SETUP.md if you need to start
 -- over on a fresh project.
+--
+-- If you already ran an earlier version of this file on a live project,
+-- don't re-run this one — instead run the numbered scripts in
+-- supabase/migrations/ (in order, ones you haven't run yet) to bring an
+-- existing database up to date without touching your data.
 -- ============================================================================
 
 
@@ -201,6 +206,16 @@ create index idx_net_events_net_id on net_events(net_id);
 create index idx_net_events_timestamp on net_events(event_timestamp desc);
 
 
+create table conflict_acknowledgements (
+  id uuid primary key default gen_random_uuid(),
+  net_event_id uuid not null references net_events(id) unique,
+  acknowledged_by uuid not null references profiles(id),
+  acknowledged_at timestamptz not null default now(),
+  resolution_notes text
+);
+comment on table conflict_acknowledgements is 'Marks an install_rejected_conflict event as reviewed by a supervisor/admin. Never modifies net_events itself — the audit log stays permanent and append-only; this is a separate record that someone looked at it.';
+
+
 -- ============================================================================
 -- SECTION 5 — Calculated views (Gulf Standard Time, never browser time)
 -- ============================================================================
@@ -304,6 +319,28 @@ from v_net_status
 where current_status <> 'scrapped';
 
 comment on view v_dashboard_summary is 'The numbers behind the dashboard summary cards. Scrapped nets are excluded from every count.';
+
+
+create view v_unacknowledged_conflicts as
+select
+  e.id as event_id,
+  e.net_id,
+  n.net_number,
+  e.cage_id,
+  c.cage_number,
+  e.event_timestamp,
+  e.user_id,
+  p.full_name as user_full_name,
+  e.comments,
+  e.metadata
+from net_events e
+join nets n on n.id = e.net_id
+left join cages c on c.id = e.cage_id
+left join profiles p on p.id = e.user_id
+left join conflict_acknowledgements a on a.net_event_id = e.id
+where e.action = 'install_rejected_conflict' and a.id is null;
+
+comment on view v_unacknowledged_conflicts is 'Offline-sync conflicts nobody has reviewed yet — this is what the "Needs Attention" screen shows.';
 
 
 -- ============================================================================
@@ -537,6 +574,9 @@ begin
   if p_destination_status = 'installed' then
     raise exception 'Destination status cannot be "installed" — use the install action for that.';
   end if;
+  if p_destination_status = 'scrapped' then
+    raise exception 'Removing a net can''t scrap it directly. Remove it to another status first, then use the Scrap action (administrators only).';
+  end if;
 
   select * into v_deployment from net_deployments where id = p_deployment_id for update;
   if not found then
@@ -694,6 +734,25 @@ end;
 $$;
 
 
+create or replace function acknowledge_conflict(
+  p_net_event_id uuid,
+  p_resolution_notes text default null
+) returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  perform require_role('supervisor');
+
+  insert into conflict_acknowledgements (net_event_id, acknowledged_by, resolution_notes)
+  values (p_net_event_id, auth.uid(), p_resolution_notes)
+  on conflict (net_event_id) do nothing;
+
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+
 -- ============================================================================
 -- SECTION 8 — Row Level Security (the real access control)
 -- ============================================================================
@@ -719,6 +778,7 @@ alter table profiles enable row level security;
 alter table nets enable row level security;
 alter table net_deployments enable row level security;
 alter table net_events enable row level security;
+alter table conflict_acknowledgements enable row level security;
 
 -- Anyone signed in can view the lookup lists (sites, cages, mesh options) —
 -- these aren't sensitive and every screen needs them for dropdowns/filters.
@@ -742,6 +802,9 @@ create policy profiles_admin_update on profiles for update to authenticated usin
 create policy nets_select on nets for select to authenticated using (true);
 create policy deployments_select on net_deployments for select to authenticated using (true);
 create policy events_select on net_events for select to authenticated using (true);
+create policy conflict_ack_select on conflict_acknowledgements for select to authenticated using (true);
+-- No insert/update/delete policy on conflict_acknowledgements — only the
+-- acknowledge_conflict() function above can write here.
 
 -- Deliberately no insert/update/delete policies on nets, net_deployments,
 -- or net_events for the authenticated role: all writes happen through the
@@ -755,6 +818,10 @@ create policy events_select on net_events for select to authenticated using (tru
 -- caller's role themselves. Lock down who may even call them.
 revoke execute on all functions in schema public from public;
 grant execute on all functions in schema public to authenticated;
+grant select on v_unacknowledged_conflicts to authenticated;
+-- Ensures functions added in future migrations are callable too, without
+-- needing a separate grant statement added by hand each time.
+alter default privileges in schema public grant execute on functions to authenticated;
 
 
 -- ============================================================================

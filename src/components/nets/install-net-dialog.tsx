@@ -1,0 +1,180 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useInstallNet } from "@/lib/mutations/use-lifecycle-mutations";
+import { useCageCurrent } from "@/lib/queries/use-cage-current";
+import { useCages, useMeshSizeOptions } from "@/lib/queries/use-lookups";
+import type { NetStatusView } from "@/types/database";
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export function InstallNetDialog({
+  net,
+  open,
+  onOpenChange,
+}: {
+  net: NetStatusView | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { data: cages } = useCages();
+  const { data: meshOptions } = useMeshSizeOptions();
+  const { data: cageCurrent } = useCageCurrent();
+  const installNet = useInstallNet();
+
+  const [cageId, setCageId] = useState("");
+  const [dateIn, setDateIn] = useState(today);
+  const [comments, setComments] = useState("");
+
+  const eligibleCages = useMemo(() => {
+    if (!cages || !meshOptions || !cageCurrent || !net) return [];
+    const validSiteIds = new Set(
+      meshOptions
+        .filter((m) => m.net_type === net.net_type && m.mesh_size_mm === net.mesh_size_mm)
+        .map((m) => m.site_id)
+    );
+    const currentByCage = new Map(cageCurrent.map((c) => [c.cage_id, c]));
+    return cages.filter((cage) => {
+      if (!validSiteIds.has(cage.site_id)) return false;
+      const current = currentByCage.get(cage.id);
+      if (!current) return true;
+      return net.net_type === "cage_net" ? !current.has_cage_net : !current.has_guard_net;
+    });
+  }, [cages, meshOptions, cageCurrent, net]);
+
+  function reset() {
+    setCageId("");
+    setDateIn(today());
+    setComments("");
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!net) return;
+    if (!cageId) {
+      toast.error("Choose a cage");
+      return;
+    }
+
+    const result = await installNet.mutateAsync({
+      net_id: net.net_id,
+      cage_id: cageId,
+      date_in: dateIn,
+      comments: comments.trim() || null,
+    });
+
+    if (result.status === "conflict") {
+      toast.error("This net or cage slot was just taken", {
+        description: result.message,
+      });
+      return;
+    }
+
+    toast.success(`Installed ${net.net_number}`);
+    reset();
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) reset();
+        onOpenChange(v);
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Install {net?.net_number}</DialogTitle>
+          <DialogDescription>
+            Only cages with a compatible, empty {net?.net_type === "guard_net" ? "guard net" : "cage net"} slot are
+            listed.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form
+          id="install-net-form"
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label>Cage</Label>
+            <Select value={cageId} onValueChange={(v) => setCageId(v ?? "")}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose a cage" />
+              </SelectTrigger>
+              <SelectContent>
+                {eligibleCages.length === 0 ? (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    No eligible cages right now
+                  </div>
+                ) : (
+                  eligibleCages.map((cage) => (
+                    <SelectItem key={cage.id} value={cage.id}>
+                      {cage.cage_number}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="date_in">Date In</Label>
+            <Input
+              id="date_in"
+              type="date"
+              max={today()}
+              value={dateIn}
+              onChange={(e) => setDateIn(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="install_comments">Comments</Label>
+            <Textarea
+              id="install_comments"
+              rows={2}
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+            />
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button
+            type="submit"
+            form="install-net-form"
+            disabled={installNet.isPending || eligibleCages.length === 0}
+          >
+            {installNet.isPending ? "Installing…" : "Install"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
