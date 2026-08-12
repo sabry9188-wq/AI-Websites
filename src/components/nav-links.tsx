@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, LayoutDashboard, Settings, Table2, Waves } from "lucide-react";
+import { AlertTriangle, FileText, LayoutDashboard, Settings, Table2, Waves } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/register", label: "Net Register", icon: Table2 },
   { href: "/cages", label: "Cages", icon: Waves },
+  { href: "/needs-attention", label: "Needs Attention", icon: AlertTriangle },
   { href: "/reports", label: "Reports", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;

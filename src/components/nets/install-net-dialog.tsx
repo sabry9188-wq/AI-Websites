@@ -22,9 +22,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useInstallNet } from "@/lib/mutations/use-lifecycle-mutations";
+import { useQueueNetAction } from "@/lib/mutations/use-lifecycle-mutations";
 import { useCageCurrent } from "@/lib/queries/use-cage-current";
-import { useCages, useMeshSizeOptions } from "@/lib/queries/use-lookups";
+import { useCages, useMeshSizeOptions, useSites } from "@/lib/queries/use-lookups";
 import type { NetStatusView } from "@/types/database";
 
 function today() {
@@ -41,9 +41,10 @@ export function InstallNetDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { data: cages } = useCages();
+  const { data: sites } = useSites();
   const { data: meshOptions } = useMeshSizeOptions();
   const { data: cageCurrent } = useCageCurrent();
-  const installNet = useInstallNet();
+  const queueAction = useQueueNetAction();
 
   const [cageId, setCageId] = useState("");
   const [dateIn, setDateIn] = useState(today);
@@ -79,21 +80,38 @@ export function InstallNetDialog({
       return;
     }
 
-    const result = await installNet.mutateAsync({
-      net_id: net.net_id,
-      cage_id: cageId,
-      date_in: dateIn,
-      comments: comments.trim() || null,
+    const cage = cages?.find((c) => c.id === cageId);
+    const site = sites?.find((s) => s.id === cage?.site_id);
+    if (!cage || !site) return;
+
+    await queueAction.mutateAsync({
+      type: "install",
+      net,
+      payload: {
+        p_net_id: net.net_id,
+        p_cage_id: cageId,
+        p_date_in: dateIn,
+        p_comments: comments.trim() || null,
+      },
+      optimisticPatch: {
+        current_status: "installed",
+        active_deployment_id: `pending-${net.net_id}`,
+        cage_id: cageId,
+        cage_number: cage.cage_number,
+        site_id: site.id,
+        site_name: site.name,
+        date_in: dateIn,
+        days_in_water: 0,
+        days_left: net.max_allowed_days_in_water,
+        overdue: false,
+        change_required: net.hole_count > 10 || net.manually_flagged,
+        color_code: "green",
+      },
     });
 
-    if (result.status === "conflict") {
-      toast.error("This net or cage slot was just taken", {
-        description: result.message,
-      });
-      return;
-    }
-
-    toast.success(`Installed ${net.net_number}`);
+    toast.success(`Install queued for ${net.net_number}`, {
+      description: "Syncs automatically — instantly if you're online.",
+    });
     reset();
     onOpenChange(false);
   }
@@ -169,9 +187,9 @@ export function InstallNetDialog({
           <Button
             type="submit"
             form="install-net-form"
-            disabled={installNet.isPending || eligibleCages.length === 0}
+            disabled={queueAction.isPending || eligibleCages.length === 0}
           >
-            {installNet.isPending ? "Installing…" : "Install"}
+            {queueAction.isPending ? "Queuing…" : "Install"}
           </Button>
         </DialogFooter>
       </DialogContent>

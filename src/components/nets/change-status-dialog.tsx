@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useChangeStatus } from "@/lib/mutations/use-lifecycle-mutations";
+import { useQueueNetAction } from "@/lib/mutations/use-lifecycle-mutations";
 import type { NetStatus, NetStatusView } from "@/types/database";
 
 const STATUS_OPTIONS: { value: NetStatus; label: string }[] = [
@@ -40,7 +40,7 @@ export function ChangeStatusDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const changeStatus = useChangeStatus();
+  const queueAction = useQueueNetAction();
   const [toStatus, setToStatus] = useState<NetStatus>("washing");
   const [comments, setComments] = useState("");
 
@@ -58,19 +58,21 @@ export function ChangeStatusDialog({
     e.preventDefault();
     if (!net) return;
 
-    try {
-      await changeStatus.mutateAsync({
-        net_id: net.net_id,
-        to_status: toStatus,
-        comments: comments.trim() || null,
-      });
-      toast.success(`${net.net_number} is now ${toStatus.replace("_", " ")}`);
-      onOpenChange(false);
-    } catch (error) {
-      toast.error("Couldn't change status", {
-        description: error instanceof Error ? error.message : undefined,
-      });
-    }
+    await queueAction.mutateAsync({
+      type: "changeStatus",
+      net,
+      payload: {
+        p_net_id: net.net_id,
+        p_to_status: toStatus,
+        p_comments: comments.trim() || null,
+      },
+      optimisticPatch: { current_status: toStatus },
+    });
+
+    toast.success(`Status change queued for ${net.net_number}`, {
+      description: "Syncs automatically — instantly if you're online.",
+    });
+    onOpenChange(false);
   }
 
   return (
@@ -119,8 +121,8 @@ export function ChangeStatusDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="change-status-form" disabled={changeStatus.isPending}>
-            {changeStatus.isPending ? "Saving…" : "Save"}
+          <Button type="submit" form="change-status-form" disabled={queueAction.isPending}>
+            {queueAction.isPending ? "Queuing…" : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

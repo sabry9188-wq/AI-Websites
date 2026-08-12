@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useUpdateHoleCount } from "@/lib/mutations/use-lifecycle-mutations";
+import { useQueueNetAction } from "@/lib/mutations/use-lifecycle-mutations";
 import type { NetStatusView } from "@/types/database";
 
 export function HoleCountDialog({
@@ -27,7 +27,7 @@ export function HoleCountDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const updateHoleCount = useUpdateHoleCount();
+  const queueAction = useQueueNetAction();
   const [holeCount, setHoleCount] = useState("0");
   const [comments, setComments] = useState("");
 
@@ -51,19 +51,24 @@ export function HoleCountDialog({
       return;
     }
 
-    try {
-      await updateHoleCount.mutateAsync({
-        net_id: net.net_id,
+    await queueAction.mutateAsync({
+      type: "holeCount",
+      net,
+      payload: {
+        p_net_id: net.net_id,
+        p_hole_count: count,
+        p_comments: comments.trim() || null,
+      },
+      optimisticPatch: {
         hole_count: count,
-        comments: comments.trim() || null,
-      });
-      toast.success(`Updated hole count for ${net.net_number}`);
-      onOpenChange(false);
-    } catch (error) {
-      toast.error("Couldn't update hole count", {
-        description: error instanceof Error ? error.message : undefined,
-      });
-    }
+        change_required: net.overdue || count > 10 || net.manually_flagged,
+      },
+    });
+
+    toast.success(`Hole count queued for ${net.net_number}`, {
+      description: "Syncs automatically — instantly if you're online.",
+    });
+    onOpenChange(false);
   }
 
   return (
@@ -106,8 +111,8 @@ export function HoleCountDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="hole-count-form" disabled={updateHoleCount.isPending}>
-            {updateHoleCount.isPending ? "Saving…" : "Save"}
+          <Button type="submit" form="hole-count-form" disabled={queueAction.isPending}>
+            {queueAction.isPending ? "Queuing…" : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

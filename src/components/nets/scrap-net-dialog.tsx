@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useScrapNet } from "@/lib/mutations/use-lifecycle-mutations";
+import { useQueueNetAction } from "@/lib/mutations/use-lifecycle-mutations";
 import type { NetStatusView } from "@/types/database";
 
 export function ScrapNetDialog({
@@ -26,21 +26,27 @@ export function ScrapNetDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const scrapNet = useScrapNet();
+  const queueAction = useQueueNetAction();
   const [comments, setComments] = useState("");
 
   async function handleConfirm() {
     if (!net) return;
-    try {
-      await scrapNet.mutateAsync({ net_id: net.net_id, comments: comments.trim() || null });
-      toast.success(`Scrapped ${net.net_number}`);
-      setComments("");
-      onOpenChange(false);
-    } catch (error) {
-      toast.error("Couldn't scrap net", {
-        description: error instanceof Error ? error.message : undefined,
-      });
-    }
+
+    await queueAction.mutateAsync({
+      type: "scrap",
+      net,
+      payload: {
+        p_net_id: net.net_id,
+        p_comments: comments.trim() || null,
+      },
+      optimisticPatch: { current_status: "scrapped" },
+    });
+
+    toast.success(`Scrap queued for ${net.net_number}`, {
+      description: "Syncs automatically — instantly if you're online.",
+    });
+    setComments("");
+    onOpenChange(false);
   }
 
   return (
@@ -69,9 +75,9 @@ export function ScrapNetDialog({
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            disabled={scrapNet.isPending}
+            disabled={queueAction.isPending}
           >
-            {scrapNet.isPending ? "Scrapping…" : "Scrap Net"}
+            {queueAction.isPending ? "Queuing…" : "Scrap Net"}
           </Button>
         </DialogFooter>
       </DialogContent>

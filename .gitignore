@@ -44,6 +44,10 @@ next-env.d.ts
 # claude code local settings
 .claude/settings.local.json
 
+# Serwist generates these at build time — no need to commit them.
+public/sw*
+public/swe-worker*
+
 # editor/OS junk
 .DS_Store
 Thumbs.db

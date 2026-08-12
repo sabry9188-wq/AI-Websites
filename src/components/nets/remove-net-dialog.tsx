@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useRemoveNet } from "@/lib/mutations/use-lifecycle-mutations";
+import { useQueueNetAction } from "@/lib/mutations/use-lifecycle-mutations";
 import type { NetStatus, NetStatusView } from "@/types/database";
 
 const DESTINATION_OPTIONS: { value: NetStatus; label: string }[] = [
@@ -41,7 +41,7 @@ export function RemoveNetDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const removeNet = useRemoveNet();
+  const queueAction = useQueueNetAction();
 
   const [holeCount, setHoleCount] = useState("0");
   const [destination, setDestination] = useState<NetStatus>("washing");
@@ -67,21 +67,43 @@ export function RemoveNetDialog({
       toast.error("Hole count must be zero or a positive whole number");
       return;
     }
-
-    try {
-      await removeNet.mutateAsync({
-        deployment_id: net.active_deployment_id,
-        hole_count_at_removal: count,
-        destination_status: destination,
-        comments: comments.trim() || null,
+    if (net.active_deployment_id.startsWith("pending-")) {
+      toast.error("This install hasn't finished syncing yet", {
+        description: "Wait for it to sync (or get back online) before removing it.",
       });
-      toast.success(`Removed ${net.net_number} from ${net.cage_number}`);
-      onOpenChange(false);
-    } catch (error) {
-      toast.error("Couldn't remove net", {
-        description: error instanceof Error ? error.message : undefined,
-      });
+      return;
     }
+
+    await queueAction.mutateAsync({
+      type: "remove",
+      net,
+      payload: {
+        p_deployment_id: net.active_deployment_id,
+        p_hole_count_at_removal: count,
+        p_destination_status: destination,
+        p_comments: comments.trim() || null,
+      },
+      optimisticPatch: {
+        current_status: destination,
+        active_deployment_id: null,
+        cage_id: null,
+        cage_number: null,
+        site_id: null,
+        site_name: null,
+        date_in: null,
+        days_in_water: null,
+        days_left: null,
+        overdue: false,
+        hole_count: count,
+        change_required: count > 10,
+        color_code: null,
+      },
+    });
+
+    toast.success(`Remove queued for ${net.net_number}`, {
+      description: "Syncs automatically — instantly if you're online.",
+    });
+    onOpenChange(false);
   }
 
   return (
@@ -144,8 +166,8 @@ export function RemoveNetDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="remove-net-form" disabled={removeNet.isPending}>
-            {removeNet.isPending ? "Removing…" : "Remove"}
+          <Button type="submit" form="remove-net-form" disabled={queueAction.isPending}>
+            {queueAction.isPending ? "Queuing…" : "Remove"}
           </Button>
         </DialogFooter>
       </DialogContent>
