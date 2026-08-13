@@ -40,14 +40,14 @@ export function LoginForm() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <div className="flex flex-col items-center gap-5 bg-[#0a5da8] px-6 py-16 text-center text-white sm:py-20">
+      <div className="flex flex-col items-center gap-5 bg-primary px-6 py-16 text-center text-primary-foreground sm:py-20">
         <span className="flex size-14 items-center justify-center rounded-full border-2 border-white/70">
           <Waves className="size-7" />
         </span>
         <h1 className="max-w-md text-4xl font-extrabold tracking-tight sm:text-5xl">
           netlog
         </h1>
-        <p className="max-w-sm text-base text-white/85 sm:text-lg">
+        <p className="max-w-sm text-base text-primary-foreground/85 sm:text-lg">
           Track every net&apos;s life from store to sea and back — install, remove,
           and change dates, all in one place.
         </p>
@@ -86,12 +86,7 @@ export function LoginForm() {
                   disabled={loading}
                 />
               </div>
-              <Button
-                type="submit"
-                size="lg"
-                className="mt-2 w-full bg-[#0a5da8] hover:bg-[#0a5da8]/90"
-                disabled={loading}
-              >
+              <Button type="submit" size="lg" className="mt-2 w-full" disabled={loading}>
                 {loading ? "Signing in…" : "Sign in"}
               </Button>
             </form>
