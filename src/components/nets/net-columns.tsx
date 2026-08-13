@@ -5,16 +5,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { ColorDot } from "@/components/nets/color-dot";
 import { NetRowActions, type NetActionType } from "@/components/nets/net-row-actions";
 import { StatusBadge } from "@/components/nets/status-badge";
+import { formatDate } from "@/lib/format";
 import type { NetStatusView } from "@/types/database";
-
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  return new Date(value + "T00:00:00").toLocaleDateString(undefined, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 export function buildNetColumns(
   onAction: (type: NetActionType, net: NetStatusView) => void

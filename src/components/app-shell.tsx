@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { NavLinks } from "@/components/nav-links";
 import { NavUser } from "@/components/nav-user";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { SyncEngineProvider } from "@/components/offline/sync-engine-provider";
 import { SyncStatusIndicator } from "@/components/offline/sync-status-indicator";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -52,6 +53,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
             <div className="ml-auto flex items-center gap-2">
               <SyncStatusIndicator />
+              <NotificationBell />
               <ThemeToggle />
               <NavUser />
             </div>

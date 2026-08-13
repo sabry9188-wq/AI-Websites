@@ -8,29 +8,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDateTime } from "@/lib/format";
+import { ACTION_LABEL } from "@/lib/nets/action-labels";
 import { useNetEvents } from "@/lib/queries/use-net-events";
-import type { NetEventAction, NetStatusView } from "@/types/database";
-
-const ACTION_LABEL: Record<NetEventAction, string> = {
-  created: "Added to register",
-  installed: "Installed",
-  removed: "Removed",
-  status_changed: "Status changed",
-  hole_count_updated: "Hole count updated",
-  edited: "Details edited",
-  scrapped: "Scrapped",
-  install_rejected_conflict: "Install attempt conflicted",
-};
-
-function formatTimestamp(value: string) {
-  return new Date(value).toLocaleString(undefined, {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import type { NetStatusView } from "@/types/database";
 
 export function NetHistorySheet({
   net,
@@ -75,7 +56,7 @@ export function NetHistorySheet({
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatTimestamp(event.event_timestamp)}
+                    {formatDateTime(event.event_timestamp)}
                     {event.profiles?.full_name ? ` · ${event.profiles.full_name}` : ""}
                     {event.cages?.cage_number ? ` · ${event.cages.cage_number}` : ""}
                   </p>
