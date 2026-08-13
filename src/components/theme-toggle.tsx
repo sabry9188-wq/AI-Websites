@@ -28,7 +28,7 @@ export function ThemeToggle() {
     return (
       <span
         aria-hidden
-        className={buttonVariants({ variant: "ghost", size: "icon", className: "opacity-0" })}
+        className={buttonVariants({ variant: "ghost", size: "icon-lg", className: "opacity-0" })}
       />
     );
   }
@@ -37,7 +37,7 @@ export function ThemeToggle() {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Toggle theme"
-        className={buttonVariants({ variant: "ghost", size: "icon" })}
+        className={buttonVariants({ variant: "ghost", size: "icon-lg" })}
       >
         <Sun className="size-5 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
         <Moon className="absolute size-5 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />

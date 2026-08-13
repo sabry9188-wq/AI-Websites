@@ -39,7 +39,7 @@ export function NotificationBell() {
   return (
     <Popover>
       <PopoverTrigger
-        className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "relative")}
+        className={cn(buttonVariants({ variant: "ghost", size: "icon-lg" }), "relative")}
         aria-label="Notifications"
       >
         <Bell className="size-5" />

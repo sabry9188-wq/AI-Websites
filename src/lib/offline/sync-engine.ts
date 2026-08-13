@@ -85,9 +85,13 @@ export async function syncPendingActions(queryClient: QueryClient): Promise<void
   syncInFlight = true;
   try {
     const supabase = createClient();
+    // Only "pending" is auto-retried. "failed" means the server actually
+    // rejected the request (not a dropped connection) — resending the
+    // identical request would just fail again forever, so those wait for a
+    // person to Retry or Discard them from the sync status panel.
     const actions = await offlineDb.pendingActions
       .where("status")
-      .anyOf("pending", "failed")
+      .equals("pending")
       .sortBy("createdAt");
 
     let touchedNetStatus = false;
@@ -149,4 +153,20 @@ export async function syncPendingActions(queryClient: QueryClient): Promise<void
   } finally {
     syncInFlight = false;
   }
+}
+
+/** Puts a failed action back in the retry queue — for a person to trigger
+ * deliberately (e.g. after fixing whatever the server complained about),
+ * never automatically. */
+export async function retryAction(id: string, queryClient: QueryClient): Promise<void> {
+  await offlineDb.pendingActions.update(id, { status: "pending" });
+  void syncPendingActions(queryClient);
+}
+
+/** Removes a failed or conflicted action from the local queue without
+ * sending it anywhere. Use once the underlying situation has been sorted
+ * out by hand (or the action no longer applies) — the permanent record of
+ * what was attempted still lives in net_events on the server regardless. */
+export async function discardAction(id: string): Promise<void> {
+  await offlineDb.pendingActions.delete(id);
 }

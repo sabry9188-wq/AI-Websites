@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <header className="flex h-16 items-center justify-between border-b bg-background px-4 md:px-6">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-lg"
               className="md:hidden"
               aria-label="Open navigation"
               onClick={() => setMobileNavOpen(true)}

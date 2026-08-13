@@ -111,7 +111,7 @@ export function HoleCountDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="hole-count-form" disabled={queueAction.isPending}>
+          <Button type="submit" form="hole-count-form" size="lg" disabled={queueAction.isPending}>
             {queueAction.isPending ? "Queuing…" : "Save"}
           </Button>
         </DialogFooter>

@@ -121,7 +121,7 @@ export function ChangeStatusDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="change-status-form" disabled={queueAction.isPending}>
+          <Button type="submit" form="change-status-form" size="lg" disabled={queueAction.isPending}>
             {queueAction.isPending ? "Queuing…" : "Save"}
           </Button>
         </DialogFooter>

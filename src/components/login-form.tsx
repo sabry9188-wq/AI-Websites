@@ -61,6 +61,7 @@ export function LoginForm() {
                 type="email"
                 autoComplete="email"
                 required
+                className="h-11"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
@@ -73,12 +74,13 @@ export function LoginForm() {
                 type="password"
                 autoComplete="current-password"
                 required
+                className="h-11"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
             </div>
-            <Button type="submit" className="mt-2 w-full" disabled={loading}>
+            <Button type="submit" size="lg" className="mt-2 w-full" disabled={loading}>
               {loading ? "Signing in…" : "Sign in"}
             </Button>
           </form>

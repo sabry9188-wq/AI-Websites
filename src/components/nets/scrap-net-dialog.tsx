@@ -74,6 +74,7 @@ export function ScrapNetDialog({
         <DialogFooter>
           <Button
             variant="destructive"
+            size="lg"
             onClick={handleConfirm}
             disabled={queueAction.isPending}
           >

@@ -44,7 +44,7 @@ export function NavUser() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring">
-        <Avatar>
+        <Avatar size="lg">
           <AvatarFallback className="bg-primary text-primary-foreground">
             {initials(profile.full_name)}
           </AvatarFallback>

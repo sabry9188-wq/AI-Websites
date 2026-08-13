@@ -22,14 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { gstToday } from "@/lib/gst-date";
 import { useQueueNetAction } from "@/lib/mutations/use-lifecycle-mutations";
 import { useCageCurrent } from "@/lib/queries/use-cage-current";
 import { useCages, useMeshSizeOptions, useSites } from "@/lib/queries/use-lookups";
+import { colorCodeFromDaysLeft } from "@/lib/nets/color-code";
 import type { NetStatusView } from "@/types/database";
-
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function InstallNetDialog({
   net,
@@ -47,7 +45,7 @@ export function InstallNetDialog({
   const queueAction = useQueueNetAction();
 
   const [cageId, setCageId] = useState("");
-  const [dateIn, setDateIn] = useState(today);
+  const [dateIn, setDateIn] = useState(gstToday);
   const [comments, setComments] = useState("");
 
   const eligibleCages = useMemo(() => {
@@ -68,7 +66,7 @@ export function InstallNetDialog({
 
   function reset() {
     setCageId("");
-    setDateIn(today());
+    setDateIn(gstToday());
     setComments("");
   }
 
@@ -105,7 +103,7 @@ export function InstallNetDialog({
         days_left: net.max_allowed_days_in_water,
         overdue: false,
         change_required: net.hole_count > 10 || net.manually_flagged,
-        color_code: "green",
+        color_code: colorCodeFromDaysLeft(net.max_allowed_days_in_water),
       },
     });
 
@@ -165,7 +163,7 @@ export function InstallNetDialog({
             <Input
               id="date_in"
               type="date"
-              max={today()}
+              max={gstToday()}
               value={dateIn}
               onChange={(e) => setDateIn(e.target.value)}
               required
@@ -187,6 +185,7 @@ export function InstallNetDialog({
           <Button
             type="submit"
             form="install-net-form"
+            size="lg"
             disabled={queueAction.isPending || eligibleCages.length === 0}
           >
             {queueAction.isPending ? "Queuing…" : "Install"}

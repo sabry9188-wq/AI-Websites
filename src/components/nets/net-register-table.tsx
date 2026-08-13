@@ -134,7 +134,7 @@ export function NetRegisterTable({
               onChange={(e) => setGlobalFilter(e.target.value)}
             />
           </div>
-          <Button onClick={onAddNet} className="gap-1.5">
+          <Button onClick={onAddNet} size="lg" className="gap-1.5">
             <Plus className="size-4" />
             Add Net
           </Button>

@@ -261,7 +261,7 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
         </form>
 
         <SheetFooter>
-          <Button type="submit" form="net-form" disabled={isPending}>
+          <Button type="submit" form="net-form" size="lg" disabled={isPending}>
             {isPending ? "Saving…" : isEdit ? "Save Changes" : "Add Net"}
           </Button>
         </SheetFooter>

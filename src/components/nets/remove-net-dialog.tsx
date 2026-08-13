@@ -95,7 +95,7 @@ export function RemoveNetDialog({
         days_left: null,
         overdue: false,
         hole_count: count,
-        change_required: count > 10,
+        change_required: count > 10 || net.manually_flagged,
         color_code: null,
       },
     });
@@ -166,7 +166,7 @@ export function RemoveNetDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="remove-net-form" disabled={queueAction.isPending}>
+          <Button type="submit" form="remove-net-form" size="lg" disabled={queueAction.isPending}>
             {queueAction.isPending ? "Queuing…" : "Remove"}
           </Button>
         </DialogFooter>

@@ -35,7 +35,7 @@ export function NetRowActions({
     return (
       <button
         type="button"
-        className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+        className={buttonVariants({ variant: "ghost", size: "icon-lg" })}
         aria-label={`History for ${net.net_number}`}
         onClick={() => onAction("history", net)}
       >
@@ -50,7 +50,7 @@ export function NetRowActions({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className={buttonVariants({ variant: "ghost", size: "icon-sm" })}
+        className={buttonVariants({ variant: "ghost", size: "icon-lg" })}
         aria-label={`Actions for ${net.net_number}`}
       >
         <MoreHorizontal className="size-4" />
