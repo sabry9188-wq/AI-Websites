@@ -96,6 +96,7 @@ export function TeamSettings() {
                   </TableCell>
                   <TableCell>
                     <Select
+                      items={ROLE_OPTIONS}
                       value={profile.role}
                       onValueChange={(v) => v && handleRoleChange(profile.id, v as UserRole)}
                     >

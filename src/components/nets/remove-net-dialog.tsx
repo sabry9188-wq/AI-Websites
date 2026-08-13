@@ -138,6 +138,7 @@ export function RemoveNetDialog({
           <div className="flex flex-col gap-1.5">
             <Label>Destination Status</Label>
             <Select
+              items={DESTINATION_OPTIONS}
               value={destination}
               onValueChange={(v) => setDestination((v as NetStatus) ?? "washing")}
             >

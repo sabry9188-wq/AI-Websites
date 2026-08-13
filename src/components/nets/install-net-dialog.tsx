@@ -138,7 +138,11 @@ export function InstallNetDialog({
         >
           <div className="flex flex-col gap-1.5">
             <Label>Cage</Label>
-            <Select value={cageId} onValueChange={(v) => setCageId(v ?? "")}>
+            <Select
+              items={eligibleCages.map((cage) => ({ value: cage.id, label: cage.cage_number }))}
+              value={cageId}
+              onValueChange={(v) => setCageId(v ?? "")}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose a cage" />
               </SelectTrigger>

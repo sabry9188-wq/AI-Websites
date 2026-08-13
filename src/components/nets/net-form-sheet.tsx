@@ -23,6 +23,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { NET_TYPE_ITEMS } from "@/lib/nets/net-type-items";
 import { useMeshSizeOptions } from "@/lib/queries/use-lookups";
 import { useCreateNet, useEditNet } from "@/lib/mutations/use-net-mutations";
 import type { NetStatusView, NetType } from "@/types/database";
@@ -175,7 +176,11 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
                 net was created — can&apos;t be changed)
               </p>
             ) : (
-              <Select value={netType} onValueChange={(v) => handleNetTypeChange(v as NetType)}>
+              <Select
+                items={NET_TYPE_ITEMS}
+                value={netType}
+                onValueChange={(v) => handleNetTypeChange(v as NetType)}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -190,6 +195,7 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
           <div className="flex flex-col gap-1.5">
             <Label>Mesh Size</Label>
             <Select
+              items={meshChoices.map((size) => ({ value: String(size), label: `${size} mm` }))}
               value={meshSize}
               onValueChange={(v) => setMeshSize(v ?? "")}
               disabled={isPending}

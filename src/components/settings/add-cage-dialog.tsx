@@ -84,7 +84,11 @@ export function AddCageDialog({
         <form id="add-cage-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label>Site</Label>
-            <Select value={siteId} onValueChange={(v) => v && handleSiteChange(v)}>
+            <Select
+              items={sites?.map((site) => ({ value: site.id, label: site.name })) ?? []}
+              value={siteId}
+              onValueChange={(v) => v && handleSiteChange(v)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose a site" />
               </SelectTrigger>

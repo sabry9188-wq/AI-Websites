@@ -91,6 +91,7 @@ export function ChangeStatusDialog({
           <div className="flex flex-col gap-1.5">
             <Label>New Status</Label>
             <Select
+              items={STATUS_OPTIONS}
               value={toStatus}
               onValueChange={(v) => setToStatus((v as NetStatus) ?? "washing")}
             >

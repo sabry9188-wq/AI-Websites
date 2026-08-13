@@ -49,6 +49,12 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All (incl. scrapped)" },
 ];
 
+const NET_TYPE_FILTER_ITEMS = [
+  { value: "all", label: "All types" },
+  { value: "cage_net", label: "Cage Net" },
+  { value: "guard_net", label: "Guard Net" },
+];
+
 export function NetRegisterTable({
   onAddNet,
   onAction,
@@ -143,7 +149,11 @@ export function NetRegisterTable({
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs text-muted-foreground">Status</Label>
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "active")}>
+            <Select
+              items={STATUS_OPTIONS}
+              value={statusFilter}
+              onValueChange={(v) => setStatusFilter(v ?? "active")}
+            >
               <SelectTrigger size="sm">
                 <SelectValue />
               </SelectTrigger>
@@ -160,6 +170,7 @@ export function NetRegisterTable({
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs text-muted-foreground">Net Type</Label>
             <Select
+              items={NET_TYPE_FILTER_ITEMS}
               value={netTypeFilter}
               onValueChange={(v) => setNetTypeFilter(v as "all" | NetType)}
             >
@@ -176,7 +187,14 @@ export function NetRegisterTable({
 
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs text-muted-foreground">Cage</Label>
-            <Select value={cageFilter} onValueChange={(v) => setCageFilter(v ?? "all")}>
+            <Select
+              items={[
+                { value: "all", label: "All cages" },
+                ...(cages?.map((cage) => ({ value: cage.id, label: cage.cage_number })) ?? []),
+              ]}
+              value={cageFilter}
+              onValueChange={(v) => setCageFilter(v ?? "all")}
+            >
               <SelectTrigger size="sm">
                 <SelectValue />
               </SelectTrigger>

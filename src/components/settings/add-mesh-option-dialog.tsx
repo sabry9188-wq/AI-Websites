@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateMeshOption } from "@/lib/mutations/use-settings-mutations";
+import { NET_TYPE_ITEMS } from "@/lib/nets/net-type-items";
 import { useSites } from "@/lib/queries/use-lookups";
 import type { NetType } from "@/types/database";
 
@@ -75,7 +76,11 @@ export function AddMeshOptionDialog({
         <form id="add-mesh-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label>Site</Label>
-            <Select value={siteId} onValueChange={(v) => setSiteId(v ?? "")}>
+            <Select
+              items={sites?.map((site) => ({ value: site.id, label: site.name })) ?? []}
+              value={siteId}
+              onValueChange={(v) => setSiteId(v ?? "")}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose a site" />
               </SelectTrigger>
@@ -90,7 +95,11 @@ export function AddMeshOptionDialog({
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Net Type</Label>
-            <Select value={netType} onValueChange={(v) => setNetType((v as NetType) ?? "cage_net")}>
+            <Select
+              items={NET_TYPE_ITEMS}
+              value={netType}
+              onValueChange={(v) => setNetType((v as NetType) ?? "cage_net")}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>

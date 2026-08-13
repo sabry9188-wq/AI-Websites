@@ -22,15 +22,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/format";
+import { gstToday } from "@/lib/gst-date";
 import { ACTION_LABEL } from "@/lib/nets/action-labels";
 import { useActivityEvents, type ActivityEvent } from "@/lib/queries/use-activity-events";
 import type { ReportColumn } from "@/lib/export/export-data";
 
 type Period = "daily" | "weekly" | "monthly";
 
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
+const PERIOD_ITEMS = [
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+];
 
 function getRange(period: Period, refDate: string) {
   const from = new Date(refDate + "T00:00:00");
@@ -73,7 +76,7 @@ const columns: ReportColumn<ActivityEvent>[] = [
 
 export function ActivityReport() {
   const [period, setPeriod] = useState<Period>("daily");
-  const [refDate, setRefDate] = useState(today());
+  const [refDate, setRefDate] = useState(gstToday());
 
   const { from, to } = useMemo(() => getRange(period, refDate), [period, refDate]);
   const { data: events, isLoading } = useActivityEvents(from.toISOString(), to.toISOString());
@@ -83,7 +86,11 @@ export function ActivityReport() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1.5">
           <Label className="text-xs text-muted-foreground">Period</Label>
-          <Select value={period} onValueChange={(v) => setPeriod((v as Period) ?? "daily")}>
+          <Select
+            items={PERIOD_ITEMS}
+            value={period}
+            onValueChange={(v) => setPeriod((v as Period) ?? "daily")}
+          >
             <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
