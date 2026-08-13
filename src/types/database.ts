@@ -59,7 +59,8 @@ export interface Net {
   net_number: string;
   net_type: NetType;
   mesh_size_mm: number;
-  dimensions: string | null;
+  circumference_m: number | null;
+  depth_m: number | null;
   max_allowed_days_in_water: number;
   current_status: NetStatus;
   hole_count: number;
@@ -101,14 +102,16 @@ export interface NetEvent {
 }
 
 /** Row shape of the `v_net_status` view — the single source of truth for
- * every calculated field (days in water, days left, overdue, change
- * required, color). Read from this view, never recompute these in the UI. */
+ * every calculated field (days in water, days left, change due date, days
+ * overdue, overdue, change required, color). Read from this view, never
+ * recompute these in the UI. */
 export interface NetStatusView {
   net_id: string;
   net_number: string;
   net_type: NetType;
   mesh_size_mm: number;
-  dimensions: string | null;
+  circumference_m: number | null;
+  depth_m: number | null;
   max_allowed_days_in_water: number;
   current_status: NetStatus;
   hole_count: number;
@@ -122,6 +125,8 @@ export interface NetStatusView {
   date_in: string | null;
   days_in_water: number | null;
   days_left: number | null;
+  change_due_date: string | null;
+  days_overdue: number;
   overdue: boolean;
   change_required: boolean;
   color_code: ColorCode;

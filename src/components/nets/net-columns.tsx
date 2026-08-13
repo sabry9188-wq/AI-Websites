@@ -31,6 +31,17 @@ export function buildNetColumns(
       cell: ({ row }) => `${row.original.mesh_size_mm} mm`,
     },
     {
+      accessorKey: "circumference_m",
+      header: "Circumference",
+      cell: ({ row }) =>
+        row.original.circumference_m !== null ? `${row.original.circumference_m} m` : "—",
+    },
+    {
+      accessorKey: "depth_m",
+      header: "Depth",
+      cell: ({ row }) => (row.original.depth_m !== null ? `${row.original.depth_m} m` : "—"),
+    },
+    {
       id: "location",
       header: "Cage",
       accessorFn: (row) =>
@@ -69,6 +80,21 @@ export function buildNetColumns(
           <span>{row.original.days_left ?? "—"}</span>
         </div>
       ),
+    },
+    {
+      accessorKey: "change_due_date",
+      header: "Change Date",
+      cell: ({ row }) => formatDate(row.original.change_due_date),
+    },
+    {
+      accessorKey: "days_overdue",
+      header: "Days Overdue",
+      cell: ({ row }) =>
+        row.original.days_overdue > 0 ? (
+          <span className="font-medium text-destructive">{row.original.days_overdue}</span>
+        ) : (
+          <span className="text-muted-foreground">0</span>
+        ),
     },
     {
       accessorKey: "hole_count",

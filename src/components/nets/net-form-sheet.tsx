@@ -45,7 +45,8 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
   const [netNumber, setNetNumber] = useState("");
   const [netType, setNetType] = useState<NetType>("cage_net");
   const [meshSize, setMeshSize] = useState("");
-  const [dimensions, setDimensions] = useState("");
+  const [circumference, setCircumference] = useState("");
+  const [depth, setDepth] = useState("");
   const [maxDays, setMaxDays] = useState(String(DEFAULT_MAX_DAYS));
   const [notes, setNotes] = useState("");
   const [manuallyFlagged, setManuallyFlagged] = useState(false);
@@ -61,7 +62,8 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
       setNetNumber(net.net_number);
       setNetType(net.net_type);
       setMeshSize(String(net.mesh_size_mm));
-      setDimensions(net.dimensions ?? "");
+      setCircumference(net.circumference_m !== null ? String(net.circumference_m) : "");
+      setDepth(net.depth_m !== null ? String(net.depth_m) : "");
       setMaxDays(String(net.max_allowed_days_in_water));
       setNotes(net.notes ?? "");
       setManuallyFlagged(net.manually_flagged);
@@ -69,7 +71,8 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
       setNetNumber("");
       setNetType("cage_net");
       setMeshSize("");
-      setDimensions("");
+      setCircumference("");
+      setDepth("");
       setMaxDays(String(DEFAULT_MAX_DAYS));
       setNotes("");
       setManuallyFlagged(false);
@@ -107,6 +110,17 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
       toast.error("Max allowed days must be a positive whole number");
       return;
     }
+    if (circumference && (!Number.isFinite(Number(circumference)) || Number(circumference) <= 0)) {
+      toast.error("Circumference must be a positive number");
+      return;
+    }
+    if (depth && (!Number.isFinite(Number(depth)) || Number(depth) <= 0)) {
+      toast.error("Depth must be a positive number");
+      return;
+    }
+
+    const circumferenceValue = circumference ? Number(circumference) : null;
+    const depthValue = depth ? Number(depth) : null;
 
     try {
       if (isEdit && net) {
@@ -114,7 +128,8 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
           net_id: net.net_id,
           net_number: netNumber.trim(),
           mesh_size_mm: Number(meshSize),
-          dimensions: dimensions.trim() || null,
+          circumference_m: circumferenceValue,
+          depth_m: depthValue,
           max_allowed_days_in_water: days,
           notes: notes.trim() || null,
           manually_flagged: manuallyFlagged,
@@ -125,7 +140,8 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
           net_number: netNumber.trim(),
           net_type: netType,
           mesh_size_mm: Number(meshSize),
-          dimensions: dimensions.trim() || null,
+          circumference_m: circumferenceValue,
+          depth_m: depthValue,
           max_allowed_days_in_water: days,
           notes: notes.trim() || null,
         });
@@ -213,15 +229,33 @@ export function NetFormSheet({ open, onOpenChange, net }: NetFormSheetProps) {
             </Select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="dimensions">Dimensions</Label>
-            <Input
-              id="dimensions"
-              placeholder="e.g. 20m x 5m"
-              value={dimensions}
-              onChange={(e) => setDimensions(e.target.value)}
-              disabled={isPending}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="circumference">Circumference (m)</Label>
+              <Input
+                id="circumference"
+                type="number"
+                min={0}
+                step="0.1"
+                placeholder="e.g. 50"
+                value={circumference}
+                onChange={(e) => setCircumference(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="depth">Depth (m)</Label>
+              <Input
+                id="depth"
+                type="number"
+                min={0}
+                step="0.1"
+                placeholder="e.g. 6"
+                value={depth}
+                onChange={(e) => setDepth(e.target.value)}
+                disabled={isPending}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5">

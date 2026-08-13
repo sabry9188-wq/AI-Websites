@@ -25,7 +25,8 @@ const columns: ReportColumn<NetStatusView>[] = [
   { header: "Date In", accessor: (n) => formatDate(n.date_in) },
   { header: "Days in Water", accessor: (n) => n.days_in_water ?? "" },
   { header: "Max Allowed Days", accessor: (n) => n.max_allowed_days_in_water },
-  { header: "Days Overdue", accessor: (n) => Math.abs(n.days_left ?? 0) },
+  { header: "Change Date", accessor: (n) => formatDate(n.change_due_date) },
+  { header: "Days Overdue", accessor: (n) => n.days_overdue },
 ];
 
 export function OverdueReport() {

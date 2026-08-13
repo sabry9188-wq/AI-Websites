@@ -9,7 +9,8 @@ export interface CreateNetInput {
   net_number: string;
   net_type: NetType;
   mesh_size_mm: number;
-  dimensions: string | null;
+  circumference_m: number | null;
+  depth_m: number | null;
   max_allowed_days_in_water: number;
   notes: string | null;
 }
@@ -24,7 +25,8 @@ export function useCreateNet() {
         p_net_number: input.net_number,
         p_net_type: input.net_type,
         p_mesh_size_mm: input.mesh_size_mm,
-        p_dimensions: input.dimensions,
+        p_circumference_m: input.circumference_m,
+        p_depth_m: input.depth_m,
         p_max_allowed_days_in_water: input.max_allowed_days_in_water,
         p_notes: input.notes,
       });
@@ -41,7 +43,8 @@ export interface EditNetInput {
   net_id: string;
   net_number: string;
   mesh_size_mm: number;
-  dimensions: string | null;
+  circumference_m: number | null;
+  depth_m: number | null;
   max_allowed_days_in_water: number;
   notes: string | null;
   manually_flagged: boolean;
@@ -57,7 +60,8 @@ export function useEditNet() {
         p_net_id: input.net_id,
         p_net_number: input.net_number,
         p_mesh_size_mm: input.mesh_size_mm,
-        p_dimensions: input.dimensions,
+        p_circumference_m: input.circumference_m,
+        p_depth_m: input.depth_m,
         p_max_allowed_days_in_water: input.max_allowed_days_in_water,
         p_notes: input.notes,
         p_manually_flagged: input.manually_flagged,

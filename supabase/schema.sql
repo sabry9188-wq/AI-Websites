@@ -134,7 +134,8 @@ create table nets (
   net_number text not null unique check (length(trim(net_number)) > 0),
   net_type net_type not null,
   mesh_size_mm numeric(6,2) not null,
-  dimensions text,
+  circumference_m numeric(6,2),
+  depth_m numeric(6,2),
   max_allowed_days_in_water integer not null default 60 check (max_allowed_days_in_water > 0),
   current_status net_status not null default 'in_store',
   hole_count integer not null default 0 check (hole_count >= 0),
@@ -231,7 +232,8 @@ select
   n.net_number,
   n.net_type,
   n.mesh_size_mm,
-  n.dimensions,
+  n.circumference_m,
+  n.depth_m,
   n.max_allowed_days_in_water,
   n.current_status,
   n.hole_count,
@@ -251,6 +253,15 @@ select
     then n.max_allowed_days_in_water - ((now() at time zone 'Asia/Dubai')::date - d.date_in)
     else null
   end as days_left,
+  case when d.id is not null
+    then d.date_in + n.max_allowed_days_in_water
+    else null
+  end as change_due_date,
+  case when d.id is not null
+    and (n.max_allowed_days_in_water - ((now() at time zone 'Asia/Dubai')::date - d.date_in)) < 0
+    then abs(n.max_allowed_days_in_water - ((now() at time zone 'Asia/Dubai')::date - d.date_in))
+    else 0
+  end as days_overdue,
   coalesce(
     d.id is not null
     and (n.max_allowed_days_in_water - ((now() at time zone 'Asia/Dubai')::date - d.date_in)) < 0,
@@ -279,7 +290,7 @@ left join net_deployments d on d.net_id = n.id and d.date_out is null
 left join cages c on c.id = d.cage_id
 left join sites s on s.id = c.site_id;
 
-comment on view v_net_status is 'One row per net with every calculated field (days in water, days left, overdue, change required, color). This is what the Net Register table and dashboard both read from, so they can never disagree. Change Required = overdue OR hole_count > 10 OR manually flagged. Color reflects days-left only: red = overdue, orange = 0-6 days left, yellow = 7-15, green = 16+.';
+comment on view v_net_status is 'One row per net with every calculated field (days in water, days left, change due date, days overdue, overdue, change required, color). This is what the Net Register table, dashboard, and reports all read from, so they can never disagree. Change Required = overdue OR hole_count > 10 OR manually flagged. Color reflects days-left only: red = overdue, orange = 0-6 days left, yellow = 7-15, green = 16+.';
 
 
 create view v_cage_current as
@@ -393,7 +404,8 @@ create or replace function create_net(
   p_net_number text,
   p_net_type net_type,
   p_mesh_size_mm numeric,
-  p_dimensions text default null,
+  p_circumference_m numeric default null,
+  p_depth_m numeric default null,
   p_max_allowed_days_in_water integer default 60,
   p_notes text default null
 ) returns uuid
@@ -406,10 +418,10 @@ begin
   perform require_role('supervisor');
 
   insert into nets (
-    net_number, net_type, mesh_size_mm, dimensions,
+    net_number, net_type, mesh_size_mm, circumference_m, depth_m,
     max_allowed_days_in_water, notes, current_status, created_by, updated_by
   ) values (
-    p_net_number, p_net_type, p_mesh_size_mm, p_dimensions,
+    p_net_number, p_net_type, p_mesh_size_mm, p_circumference_m, p_depth_m,
     coalesce(p_max_allowed_days_in_water, 60), p_notes, 'in_store', auth.uid(), auth.uid()
   ) returning id into v_net_id;
 
@@ -425,7 +437,8 @@ create or replace function edit_net(
   p_net_id uuid,
   p_net_number text default null,
   p_mesh_size_mm numeric default null,
-  p_dimensions text default null,
+  p_circumference_m numeric default null,
+  p_depth_m numeric default null,
   p_max_allowed_days_in_water integer default null,
   p_notes text default null,
   p_manually_flagged boolean default null,
@@ -440,7 +453,8 @@ begin
   update nets set
     net_number = coalesce(p_net_number, net_number),
     mesh_size_mm = coalesce(p_mesh_size_mm, mesh_size_mm),
-    dimensions = coalesce(p_dimensions, dimensions),
+    circumference_m = coalesce(p_circumference_m, circumference_m),
+    depth_m = coalesce(p_depth_m, depth_m),
     max_allowed_days_in_water = coalesce(p_max_allowed_days_in_water, max_allowed_days_in_water),
     notes = coalesce(p_notes, notes),
     manually_flagged = coalesce(p_manually_flagged, manually_flagged),
